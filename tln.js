@@ -56,7 +56,7 @@ const tln = {
         height: 64px;
         position: fixed;
         top: calc(50vh - 32px);
-        left: calc(50vh - 32px);
+        left: calc(50vw - 32px);
       }
       .loader:after {
         content: " ";
