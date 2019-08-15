@@ -9,20 +9,42 @@ const tln = {
       })
     )
   },
-  getContent(url) {
+  async getContent(url) {
     this.drawLoader();
-    fetch(url).then(res => res.text()).then(html => {
-      this.destroyLoader();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, "text/html");
-      const body = doc.querySelector('body').innerHTML;
-      const style = doc.querySelector('style') ? doc.querySelector('style').innerHTML : '';
-      const title = doc.querySelector('title') ? doc.querySelector('title').innerHTML : '';
-      this.drawPage({ body, style, title });
-      window.history.pushState(null, null, url);
-      this.init();
-    })
-    .catch(() => window.location = url)
+    this.drawpPrograssBar(0);
+    let response = await fetch(url);
+    const reader = response.body.getReader();
+    const contentLength = +response.headers.get('Content-Length');
+    let receivedLength = 0; // received that many bytes at the moment
+    let chunks = []; // array of received binary chunks (comprises the body)
+    while(true) {
+      const {done, value} = await reader.read();
+      if (done) {
+        break;
+      }
+      chunks.push(value);
+      receivedLength += value.length;
+      const progress = (receivedLength/contentLength * 100).toFixed(0);
+      this.drawpPrograssBar(progress);
+      console.log(progress);
+    }
+
+    let chunksAll = new Uint8Array(receivedLength); // (4.1)
+    let position = 0;
+    for(let chunk of chunks) {
+      chunksAll.set(chunk, position); // (4.2)
+      position += chunk.length;
+    }
+
+    const html = new TextDecoder("utf-8").decode(chunksAll);
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+    const body = doc.querySelector('body').innerHTML;
+    const style = doc.querySelector('style') ? doc.querySelector('style').innerHTML : '';
+    const title = doc.querySelector('title') ? doc.querySelector('title').innerHTML : '';
+    this.drawPage({ body, style, title });
+    window.history.pushState(null, null, url);
+    this.init();
   },
   drawLoader() {
     const loader = `
@@ -58,7 +80,32 @@ const tln = {
     </style>
     </div>
       `;
-    document.querySelector('body').insertAdjacentHTML('beforeend', loader);
+      document.querySelector('body').insertAdjacentHTML('beforeend', loader);
+  },
+  drawpPrograssBar(progress) {
+    const bar = `
+    <div class="progressBar">
+      <div class="progress"></div>
+      <style>
+      .progressBar {
+        background-color: grey;
+        height: 20px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 999;
+      }
+      .progress {
+        background-color: teal;
+        height: 100%;
+        width: 0%;
+      }
+      </style>
+    </div>
+    `
+    if (document.querySelector('.progressBar')) document.querySelector('.progress').style.width = `${progress}%`
+    else document.querySelector('body').insertAdjacentHTML('afterbegin', bar);
   },
   destroyLoader() {
     document.querySelector('.loader').remove();
