@@ -2,7 +2,7 @@ const tln = {
   init() {
     document.querySelectorAll('a').forEach(a =>
       a.addEventListener('click', e => {
-        if (a.href.search(window.location.hostname) > 0) {
+        if (a.origin === location.origin) {
           e.preventDefault();
           this.drawLoader();
           fetch(a.href).then(res => res.text()).then(html => {
