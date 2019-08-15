@@ -4,22 +4,25 @@ const tln = {
       a.addEventListener('click', e => {
         if (a.origin === location.origin) {
           e.preventDefault();
-          this.drawLoader();
-          fetch(a.href).then(res => res.text()).then(html => {
-            this.destroyLoader();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, "text/html");
-            const body = doc.querySelector('body').innerHTML;
-            const style = doc.querySelector('style') ? doc.querySelector('style').innerHTML : '';
-            const title = doc.querySelector('title') ? doc.querySelector('title').innerHTML : '';
-            this.drawPage({ body, style, title });
-            window.history.pushState({ body, style, title }, "", a.href);
-            this.init();
-          })
-          .catch(() => window.location = a.href)
+          this.getContent(a.href);
         }
       })
     )
+  },
+  getContent(url) {
+    this.drawLoader();
+    fetch(url).then(res => res.text()).then(html => {
+      this.destroyLoader();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+      const body = doc.querySelector('body').innerHTML;
+      const style = doc.querySelector('style') ? doc.querySelector('style').innerHTML : '';
+      const title = doc.querySelector('title') ? doc.querySelector('title').innerHTML : '';
+      this.drawPage({ body, style, title });
+      window.history.pushState(null, null, url);
+      this.init();
+    })
+    .catch(() => window.location = url)
   },
   drawLoader() {
     const loader = `
@@ -67,13 +70,8 @@ const tln = {
   }
 }
 
-window.onpopstate = (e) => {
-  if(e.state){
-    tln.drawPage(e.state);
-    tln.init();
-  }
+window.onpopstate = () => {
+    tln.getContent(location.href)
 };
 
 tln.init();
-
-
