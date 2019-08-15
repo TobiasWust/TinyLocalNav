@@ -111,9 +111,19 @@ const tln = {
     document.querySelector('.loader').remove();
   },
   drawPage({ body, style, title }) {
-    document.querySelector('body').innerHTML = body;
-    document.querySelector('style').innerHTML = style;
-    document.querySelector('title').innerHTML = title;
+    // const bodyNode = document.querySelector('body');
+    // bodyNode.style.transition = '0.5s all ease';
+    // bodyNode.style.transform = 'translate(-100vw)';
+
+    // bodyNode.addEventListener("transitionend", () => {
+    //   bodyNode.style.transform = 'translate(0)';
+    //   document.querySelector('body').innerHTML = body;
+    //   document.querySelector('style').innerHTML = style;
+    //   document.querySelector('title').innerHTML = title;
+    // });
+      document.querySelector('body').innerHTML = body;
+      document.querySelector('style').innerHTML = style;
+      document.querySelector('title').innerHTML = title;
   }
 }
 
